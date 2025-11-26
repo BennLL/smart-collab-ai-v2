@@ -1,70 +1,47 @@
-# Getting Started with Create React App
+# Smart Collab
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Made with  
+![React](https://img.shields.io/badge/-React-61DAFB?logo=react&logoColor=black)
+![Supabase](https://img.shields.io/badge/-Supabase-3ECF8E?logo=supabase&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/-Tailwind_CSS-06B6D4?logo=tailwindcss&logoColor=white)
 
-## Available Scripts
+Smart Collab is a lightweight project collaboration platform that helps teams organize work, manage tasks, and share files. Built with React and Supabase, it provides a clean, modern interface for creating projects, assigning duties, and keeping everything in one place.
 
-In the project directory, you can run:
+## Overview
 
-### `npm start`
+Smart Collab includes:
+- User authentication powered by Supabase Auth  
+- A dashboard where users can create and join projects  
+- A project page with tasks, file uploads, and deadlines  
+- Real-time-ready database structure for future features  
+- Secure storage for project files through Supabase Storage  
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+The app focuses on simplicity and clarity while providing the essential building blocks of project management.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Core Features
 
-### `npm test`
+### Authentication
+Users can create accounts, sign in, and automatically generate profiles with their basic information.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### Dashboard
+The dashboard lists all projects a user owns or is part of. Users can create new projects or join existing ones using a unique join key.
 
-### `npm run build`
+### Project Page
+Each project has:
+- A detailed project overview  
+- Task creation and organization  
+- File uploads stored safely in Supabase Storage  
+- Automatic retrieval of all project data  
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+This page functions as the central workspace for collaboration.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## Tech Stack
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+- React  
+- Supabase (Auth, Database, Storage)  
+- Tailwind CSS  
+- React Router  
 
-### `npm run eject`
+---
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Smart Collab is designed to be extendable, fast, and easy to deploy, making it a great foundation for a full project management application.
