@@ -11,7 +11,7 @@ import {
     Layout
 } from 'lucide-react';
 import SideBar from '../components/sideBar';
-
+import { useNavigate } from 'react-router-dom';
 
 const CURRENT_USER = {
     id: "user_123",
@@ -46,7 +46,7 @@ const INITIAL_PROJECTS = [
     }
 ];
 
-export default function HomePage({ onLogout }) {
+function HomePage({ onLogout }) {
     const [projects, setProjects] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -57,6 +57,8 @@ export default function HomePage({ onLogout }) {
     const [createName, setCreateName] = useState('');
     const [createDesc, setCreateDesc] = useState('');
     const [joinKey, setJoinKey] = useState('');
+
+    const navigate = useNavigate();
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -119,6 +121,13 @@ export default function HomePage({ onLogout }) {
         setError('');
     };
 
+    const handleProjectClick = (projectId) => {
+        const project = projects.find(p => p.id === projectId);
+        if (project) {
+            navigate(`/project/${projectId}`, { state: { project } });
+        }
+    }
+
     return (
         <div className="flex h-screen overflow-hidden bg-gray-50">
             <SideBar
@@ -129,7 +138,7 @@ export default function HomePage({ onLogout }) {
                 onViewChange={setCurrentView}
                 onProjectClick={(id) => console.log("Clicked sidebar project", id)}
             />
-            <div className="flex-1 bg-gradient-to-br from-slate-100 via-blue-50 to-slate-100 dark:from-blue-100 dark:via-white-200 dark:to-blue-100 overflow-auto min-h-screen">
+            <div className="flex-1 bg-gray-50 overflow-auto min-h-screen">
                 <div className="max-w-7xl mx-auto p-8">
 
                     <div className="mb-8">
@@ -247,7 +256,7 @@ export default function HomePage({ onLogout }) {
                                     <div
                                         key={project.id}
                                         className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer group"
-                                        onClick={() => console.log("Clicked project", project.id)}
+                                        onClick={() => handleProjectClick(project.id)}
                                     >
                                         <div className="mb-4">
                                             <div className="flex justify-between items-start mb-2">
@@ -302,3 +311,5 @@ export default function HomePage({ onLogout }) {
         </div>
     );
 }
+
+export default HomePage;

@@ -1,9 +1,9 @@
-import { Home, FolderKanban, Settings, LogOut } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Home, FolderKanban, Settings, LogOut, Layout } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import logo from '../img/logo.png';
 
 const menuItems = [
-    { id: 'home', label: 'Home', icon: Home },
+    { id: 'home', label: 'Home', icon: Home, path: '/home' },
     { id: 'projects', label: 'Projects', icon: FolderKanban },
     { id: 'settings', label: 'Settings', icon: Settings },
 ];
@@ -12,23 +12,52 @@ const getInitials = (name) => {
     return name ? name.charAt(0).toUpperCase() : '?';
 };
 
-function SideBar({
-    user,
-    activeProjects = [],
-    onSignOut,
-    currentView = 'home',
+function SideBar({ 
+    user, 
+    activeProjects = [], 
+    onSignOut, 
+    currentView = 'home', 
     onViewChange,
-    onProjectClick
+    onProjectClick 
 }) {
+    const navigate = useNavigate();
+
+    const handleNavigation = (item) => {
+        if (item.id === 'home') {
+            navigate('/home');
+        }
+        
+        if (onViewChange) {
+            onViewChange(item.id);
+        }
+    };
+
+    const handleSidebarProjectClick = (project) => {
+        navigate(`/project/${project.id}`, { state: { project } });
+        
+        if (onProjectClick) {
+            onProjectClick(project.id);
+        }
+    };
+
+    const handleLogout = () => {
+        // if (onSignOut) onSignOut();
+        navigate('/');
+    };
+
     return (
         <div className="w-72 bg-gradient-to-b from-gray-900 to-gray-800 text-white h-screen flex flex-col shadow-xl flex-shrink-0">
             <div className="p-6 border-b border-gray-700">
                 <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-lg flex items-center justify-center">
-                        <img className="" src={logo} alt="logo"></img>
+                    <div 
+                        className="w-12 h-12 rounded-lg flex items-center justify-center cursor-pointer " 
+                        onClick={() => navigate('/home')}
+                    >
+                        <Layout className="w-7 h-7 text-white" />
+                        <img src={logo}></img>
                     </div>
                     <div>
-                        <h1 className="text-xl font-bold">Smart Collab </h1>
+                        <h1 className="text-xl font-bold">Smart Collab</h1>
                         <p className="text-xs text-gray-400">Manage with ease</p>
                     </div>
                 </div>
@@ -41,10 +70,10 @@ function SideBar({
                     return (
                         <button
                             key={item.id}
-                            onClick={() => onViewChange && onViewChange(item.id)}
+                            onClick={() => handleNavigation(item)}
                             className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${isActive
-                                ? 'bg-blue-600 text-white shadow-lg'
-                                : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                                    ? 'bg-blue-600 text-white shadow-lg'
+                                    : 'text-gray-300 hover:bg-gray-700 hover:text-white'
                                 }`}
                         >
                             <Icon size={20} />
@@ -69,7 +98,7 @@ function SideBar({
                             activeProjects.map((project) => (
                                 <button
                                     key={project.id}
-                                    onClick={() => onProjectClick && onProjectClick(project.id)}
+                                    onClick={() => handleSidebarProjectClick(project)}
                                     className="w-full text-left px-4 py-2.5 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-all duration-200 truncate"
                                 >
                                     <div className="flex items-center gap-2">
@@ -96,12 +125,11 @@ function SideBar({
                     </div>
                 </div>
                 <button
+                    onClick={handleLogout}
                     className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-red-600 hover:bg-red-700 text-white font-medium transition-all duration-200 shadow-sm hover:shadow-md"
                 >
-                    <Link to="/">
-                        <LogOut size={18} />
-                        <span>Sign Out</span>
-                    </Link>
+                    <LogOut size={18} />
+                    <span>Sign Out</span>
                 </button>
             </div>
         </div>

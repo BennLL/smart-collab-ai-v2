@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route, Link, useNavigate, Navigate} fr
 import FrontPage from './pages/frontPage';
 import LoginPage from './pages/loginPage';
 import HomePage from './pages/homePage';
+import ProjectPage from './pages/projectPage';
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
         <Route path="/" element={<FrontPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/home" element={<HomePage />} />
+        <Route path="/project/:id" element={<ProjectPage />} />
       </Routes>
     </Router>
   );
