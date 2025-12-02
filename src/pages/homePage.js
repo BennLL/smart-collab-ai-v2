@@ -13,6 +13,8 @@ import {
 import SideBar from '../components/sideBar';
 import { useNavigate } from 'react-router-dom';
 
+
+
 const CURRENT_USER = {
     id: "user_123",
     name: "test user 1",

@@ -1,6 +1,7 @@
 import { Home, FolderKanban, Settings, LogOut, Layout } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import logo from '../img/logo.png';
+import { supabase } from '../supabaseClient';
 
 const menuItems = [
     { id: 'home', label: 'Home', icon: Home, path: '/home' },
@@ -12,13 +13,13 @@ const getInitials = (name) => {
     return name ? name.charAt(0).toUpperCase() : '?';
 };
 
-function SideBar({ 
-    user, 
-    activeProjects = [], 
-    onSignOut, 
-    currentView = 'home', 
+function SideBar({
+    user,
+    activeProjects = [],
+    onSignOut,
+    currentView = 'home',
     onViewChange,
-    onProjectClick 
+    onProjectClick
 }) {
     const navigate = useNavigate();
 
@@ -26,7 +27,7 @@ function SideBar({
         if (item.id === 'home') {
             navigate('/home');
         }
-        
+
         if (onViewChange) {
             onViewChange(item.id);
         }
@@ -34,23 +35,24 @@ function SideBar({
 
     const handleSidebarProjectClick = (project) => {
         navigate(`/project/${project.id}`, { state: { project } });
-        
+
         if (onProjectClick) {
             onProjectClick(project.id);
         }
     };
 
-    const handleLogout = () => {
-        // if (onSignOut) onSignOut();
-        navigate('/');
+    const handleLogout = async () => {
+        await supabase.auth.signOut();             
+        localStorage.removeItem('supabase.auth.token'); 
+        navigate('/login');
     };
 
     return (
         <div className="w-72 bg-gradient-to-b from-gray-900 to-gray-800 text-white h-screen flex flex-col shadow-xl flex-shrink-0">
             <div className="p-6 border-b border-gray-700">
                 <div className="flex items-center gap-3">
-                    <div 
-                        className="w-12 h-12 rounded-lg flex items-center justify-center cursor-pointer " 
+                    <div
+                        className="w-12 h-12 rounded-lg flex items-center justify-center cursor-pointer "
                         onClick={() => navigate('/home')}
                     >
                         <Layout className="w-7 h-7 text-white" />
@@ -72,8 +74,8 @@ function SideBar({
                             key={item.id}
                             onClick={() => handleNavigation(item)}
                             className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${isActive
-                                    ? 'bg-blue-600 text-white shadow-lg'
-                                    : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                                ? 'bg-blue-600 text-white shadow-lg'
+                                : 'text-gray-300 hover:bg-gray-700 hover:text-white'
                                 }`}
                         >
                             <Icon size={20} />

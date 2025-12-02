@@ -3,18 +3,19 @@ import { useNavigate } from 'react-router-dom';
 import { Github, Sparkles } from 'lucide-react';
 import ThemeToggle from '../components/themeToggle';
 import logo from '../img/logo.png';
+import { supabase } from '../supabaseClient';
 
 const MOCK_USERS = [
-  {
-    email: "test@example.com",
-    password: "password123",
-    name: "test user 1"
-  },
-  {
-    email: "test2@example.com",
-    password: "password123",
-    name: "test user 2"
-  },
+    {
+        email: "test@example.com",
+        password: "password123",
+        name: "test user 1"
+    },
+    {
+        email: "test2@example.com",
+        password: "password123",
+        name: "test user 2"
+    },
 ];
 
 
@@ -25,21 +26,26 @@ function LoginPage({ onLogin }) {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
 
-    const handleSubmit = (e) => {
-        e.preventDefault(); 
+    const handleSubmit = async (e) => {
+        e.preventDefault();
 
-        const userFound = MOCK_USERS.find(
-            (u) => u.email === email && u.password === password
-        );
+        setError("");
 
-        if (userFound) {
-            setError('');
-            if (onLogin) onLogin(true); 
-            navigate('/home');
-        } else {
-            setError('Invalid email or password. Try test@example.com / password123');
+        const { data, error } = await supabase.auth.signInWithPassword({
+            email,
+            password
+        });
+
+        if (error) {
+            setError(error.message);
+            return;
         }
+
+        if (onLogin) onLogin(true);
+
+        navigate("/home");
     };
+
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-100 via-blue-50 to-slate-100 dark:from-gray-950 dark:via-blue-800 dark:to-gray-950 flex items-center justify-center p-4 transition-colors duration-200 animate-fadeIn relative overflow-hidden">
@@ -169,10 +175,10 @@ function LoginPage({ onLogin }) {
 
                     <div className="grid grid-cols-2 gap-3">
                         <button className="flex items-center justify-center gap-2 p-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-colors">
-                           <Sparkles size={20} /> Google
+                            <Sparkles size={20} /> Google
                         </button>
                         <button className="flex items-center justify-center gap-2 p-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-colors">
-                           <Github size={20} /> GitHub
+                            <Github size={20} /> GitHub
                         </button>
                     </div>
 

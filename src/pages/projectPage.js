@@ -17,15 +17,20 @@ import {
     FileText,
     Download,
     ExternalLink,
-    Paperclip
+    Paperclip,
+    BarChart3,
+    AlertCircle
 } from 'lucide-react';
 import SideBar from '../components/sideBar';
 
+// Mock Data
 const INITIAL_TASKS = [
     { id: 1, title: "Initialize React Repo", assignedTo: "Dan", completed: true },
     { id: 2, title: "Configure Tailwind CSS", assignedTo: "Dan", completed: true },
     { id: 3, title: "Design Sidebar Component", assignedTo: "Sarah", completed: false },
     { id: 4, title: "Connect Fake Database", assignedTo: "Sarah", completed: false },
+    { id: 5, title: "Draft Project Proposal", assignedTo: "Mike", completed: true },
+    { id: 6, title: "Create Login Page", assignedTo: "Dan", completed: false },
 ];
 
 const INITIAL_LINKS = [
@@ -38,26 +43,48 @@ const INITIAL_FILES = [
     { id: 2, name: "assets_v1.zip", size: "14 MB", type: "zip" },
 ];
 
+const TEAM_MEMBERS = ["Dan", "Sarah", "Mike", "Test User 1"];
+
 function ProjectPage({ onLogout }) {
     const navigate = useNavigate();
     const { state } = useLocation();
     const { id } = useParams();
     const project = state?.project;
 
+    // --- State Management ---
     const [tasks, setTasks] = useState(INITIAL_TASKS);
     const [newTask, setNewTask] = useState('');
+    const [assignee, setAssignee] = useState(TEAM_MEMBERS[0]);
     const [links, setLinks] = useState(INITIAL_LINKS);
     const [files, setFiles] = useState(INITIAL_FILES);
     const [newLinkTitle, setNewLinkTitle] = useState('');
     const [newLinkUrl, setNewLinkUrl] = useState('');
 
+    // --- General Stats ---
     const completedTasks = tasks.filter(t => t.completed).length;
     const totalTasks = tasks.length;
     const progressPercentage = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
 
+    // --- Contribution Calculation Logic ---
+    const contributionStats = TEAM_MEMBERS.map(member => {
+        const memberTasks = tasks.filter(t => t.assignedTo === member);
+        const completed = memberTasks.filter(t => t.completed).length;
+        const total = memberTasks.length;
+        // Calculate percentage of the TOTAL project work this user has completed
+        const overallContribution = totalTasks === 0 ? 0 : Math.round((completed / totalTasks) * 100);
+        
+        return {
+            name: member,
+            completed,
+            total,
+            overallContribution,
+            hasTasks: total > 0
+        };
+    }).sort((a, b) => b.overallContribution - a.overallContribution); // Sort by highest contribution
+
     // --- Handlers ---
     const handleToggleTask = (taskId) => {
-        setTasks(tasks.map(t => 
+        setTasks(tasks.map(t =>
             t.id === taskId ? { ...t, completed: !t.completed } : t
         ));
     };
@@ -68,7 +95,7 @@ function ProjectPage({ onLogout }) {
         const task = {
             id: Date.now(),
             title: newTask,
-            assignedTo: "Unassigned", // Default for now
+            assignedTo: assignee,
             completed: false
         };
         setTasks([...tasks, task]);
@@ -87,7 +114,6 @@ function ProjectPage({ onLogout }) {
         setNewLinkUrl('');
     };
 
-    // Fallback if no project data exists
     if (!project) {
         return (
             <div className="flex h-screen items-center justify-center bg-gray-50">
@@ -165,9 +191,10 @@ function ProjectPage({ onLogout }) {
                 <div className="max-w-7xl mx-auto p-8">
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
+                        {/* --- LEFT COLUMN (Tasks & Activity) --- */}
                         <div className="lg:col-span-2 space-y-6">
-                            
-                            {/* Stats & Gauge Row */}
+
+                            {/* Stats Row */}
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 {/* Completion Gauge */}
                                 <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between relative overflow-hidden">
@@ -176,7 +203,6 @@ function ProjectPage({ onLogout }) {
                                         <h3 className="text-2xl font-bold text-gray-900">{progressPercentage}%</h3>
                                         <p className="text-xs text-gray-400 mt-1">{completedTasks}/{totalTasks} tasks</p>
                                     </div>
-                                    {/* SVG Circular Progress */}
                                     <div className="relative w-16 h-16">
                                         <svg className="w-full h-full transform -rotate-90">
                                             <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="6" fill="transparent" className="text-gray-100" />
@@ -189,7 +215,6 @@ function ProjectPage({ onLogout }) {
                                     </div>
                                 </div>
 
-                                {/* Other Stats */}
                                 <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
                                     <div className="flex items-center gap-2 text-gray-500 mb-1">
                                         <Clock size={18} />
@@ -202,11 +227,11 @@ function ProjectPage({ onLogout }) {
                                         <Users size={18} />
                                         <span className="text-sm">Team Members</span>
                                     </div>
-                                    <p className="text-2xl font-bold text-gray-900">4</p>
+                                    <p className="text-2xl font-bold text-gray-900">{TEAM_MEMBERS.length}</p>
                                 </div>
                             </div>
 
-                            {/* --- TASKS SECTION --- */}
+                            {/* Tasks List */}
                             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                                 <div className="p-6 border-b border-gray-100 flex justify-between items-center">
                                     <h3 className="text-lg font-bold text-gray-900">Project Tasks</h3>
@@ -214,14 +239,13 @@ function ProjectPage({ onLogout }) {
                                         {tasks.length - completedTasks} Remaining
                                     </span>
                                 </div>
-                                
+
                                 <div className="p-6 space-y-4">
-                                    {/* Task List */}
                                     <div className="space-y-3">
                                         {tasks.map(task => (
                                             <div key={task.id} className="group flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors border border-transparent hover:border-gray-100">
                                                 <div className="flex items-center gap-3">
-                                                    <button 
+                                                    <button
                                                         onClick={() => handleToggleTask(task.id)}
                                                         className={`transition-colors ${task.completed ? 'text-green-500' : 'text-gray-300 hover:text-gray-400'}`}
                                                     >
@@ -239,7 +263,7 @@ function ProjectPage({ onLogout }) {
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <button 
+                                                <button
                                                     onClick={() => handleDeleteTask(task.id)}
                                                     className="text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
                                                 >
@@ -249,69 +273,100 @@ function ProjectPage({ onLogout }) {
                                         ))}
                                     </div>
 
-                                    {/* Add Task Input */}
-                                    <form onSubmit={handleAddTask} className="flex items-center gap-3 mt-4 pt-4 border-t border-gray-100">
-                                        <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0">
-                                            <Plus size={18} className="text-blue-600" />
+                                    {/* Add Task Form */}
+                                    <form onSubmit={handleAddTask} className="mt-4 pt-4 border-t border-gray-100">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0">
+                                                <Plus size={18} className="text-blue-600" />
+                                            </div>
+                                            <input
+                                                type="text"
+                                                value={newTask}
+                                                onChange={(e) => setNewTask(e.target.value)}
+                                                placeholder="Add a new task..."
+                                                className="flex-1 bg-transparent text-sm focus:outline-none placeholder-gray-400"
+                                            />
                                         </div>
-                                        <input
-                                            type="text"
-                                            value={newTask}
-                                            onChange={(e) => setNewTask(e.target.value)}
-                                            placeholder="Add a new task..."
-                                            className="flex-1 bg-transparent text-sm focus:outline-none placeholder-gray-400"
-                                        />
-                                        <button 
-                                            type="submit" 
-                                            disabled={!newTask.trim()}
-                                            className="text-xs font-medium text-blue-600 hover:text-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                                        >
-                                            Add
-                                        </button>
+                                        <div className="flex justify-end gap-2 mt-2">
+                                            <select
+                                                value={assignee}
+                                                onChange={(e) => setAssignee(e.target.value)}
+                                                className="text-xs bg-gray-50 border border-gray-200 rounded px-2 py-1 focus:outline-none focus:border-blue-500 text-gray-600"
+                                            >
+                                                {TEAM_MEMBERS.map(member => (
+                                                    <option key={member} value={member}>{member}</option>
+                                                ))}
+                                            </select>
+                                            <button
+                                                type="submit"
+                                                disabled={!newTask.trim()}
+                                                className="text-xs font-medium bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                            >
+                                                Add Task
+                                            </button>
+                                        </div>
                                     </form>
                                 </div>
                             </div>
-                            
-                            {/* Project Activity*/}
+                        </div>
+
+                        {/* --- RIGHT COLUMN (Contributions, Team, Files) --- */}
+                        <div className="space-y-6">
+
+                            {/* NEW: Work Contribution Breakdown */}
                             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                                <div className="flex items-center gap-2 mb-4">
-                                    <MessageSquare size={20} className="text-gray-400" />
-                                    <h3 className="text-lg font-semibold text-gray-900">Recent Activity</h3>
+                                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                                    <BarChart3 size={18} className="text-purple-600" />
+                                    Work Contribution
+                                </h3>
+                                <div className="space-y-4">
+                                    {contributionStats.map((stat, index) => (
+                                        <div key={index} className="space-y-1">
+                                            <div className="flex justify-between text-sm">
+                                                <span className="font-medium text-gray-700">{stat.name}</span>
+                                                <span className="text-gray-500">
+                                                    {stat.completed}/{stat.total} tasks
+                                                </span>
+                                            </div>
+                                            <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
+                                                <div 
+                                                    className={`h-full rounded-full ${
+                                                        stat.overallContribution > 40 ? 'bg-green-500' : 
+                                                        stat.overallContribution > 20 ? 'bg-blue-500' : 
+                                                        stat.hasTasks ? 'bg-orange-400' : 'bg-gray-300'
+                                                    }`}
+                                                    style={{ width: `${stat.overallContribution}%` }}
+                                                ></div>
+                                            </div>
+                                            {!stat.hasTasks && (
+                                                <div className="flex items-center gap-1 text-[10px] text-red-500 mt-0.5">
+                                                    <AlertCircle size={10} />
+                                                    <span>No tasks assigned</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
                                 </div>
-                                <div className="space-y-6 pl-2 border-l-2 border-gray-100 ml-2">
-                                    <div className="relative pl-6">
-                                        <div className="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-blue-500 border-4 border-white"></div>
-                                        <p className="text-sm text-gray-600"><span className="font-semibold text-gray-900">Dan</span> created task "Design Sidebar"</p>
-                                        <p className="text-xs text-gray-400 mt-1">2 hours ago</p>
-                                    </div>
-                                    <div className="relative pl-6">
-                                        <div className="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-green-500 border-4 border-white"></div>
-                                        <p className="text-sm text-gray-600"><span className="font-semibold text-gray-900">Sarah</span> completed "API Setup"</p>
-                                        <p className="text-xs text-gray-400 mt-1">5 hours ago</p>
-                                    </div>
+                                <div className="mt-4 pt-3 border-t border-gray-50 text-xs text-gray-400 text-center">
+                                    % of total completed project tasks
                                 </div>
                             </div>
-                        </div>
-                        <div className="space-y-6">
-                            
+
                             {/* Team Card */}
                             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                                <h3 className="text-lg font-semibold text-gray-900 mb-4">Team</h3>
+                                <h3 className="text-lg font-semibold text-gray-900 mb-4">Team Members</h3>
                                 <div className="space-y-3">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 flex items-center justify-center text-white text-xs font-bold">TU</div>
-                                        <div>
-                                            <p className="text-sm font-medium">Test User 1</p>
-                                            <p className="text-xs text-gray-500">Owner</p>
+                                    {TEAM_MEMBERS.map((member, i) => (
+                                        <div key={i} className="flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 text-xs font-bold">
+                                                {member.charAt(0)}
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-medium">{member}</p>
+                                                <p className="text-xs text-gray-500">Member</p>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 text-xs font-bold">JD</div>
-                                        <div>
-                                            <p className="text-sm font-medium">Jane Doe</p>
-                                            <p className="text-xs text-gray-500">Editor</p>
-                                        </div>
-                                    </div>
+                                    ))}
                                 </div>
                             </div>
 
@@ -322,10 +377,10 @@ function ProjectPage({ onLogout }) {
                                 </h3>
                                 <div className="space-y-3 mb-4">
                                     {links.map(link => (
-                                        <a 
-                                            key={link.id} 
-                                            href={link.url} 
-                                            target="_blank" 
+                                        <a
+                                            key={link.id}
+                                            href={link.url}
+                                            target="_blank"
                                             rel="noreferrer"
                                             className="flex items-center justify-between p-2.5 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors group"
                                         >
@@ -338,19 +393,18 @@ function ProjectPage({ onLogout }) {
                                         </a>
                                     ))}
                                 </div>
-                                {/* Simple Add Link Form */}
                                 <form onSubmit={handleAddLink} className="space-y-2">
-                                    <input 
-                                        type="text" 
-                                        placeholder="Link Title" 
+                                    <input
+                                        type="text"
+                                        placeholder="Link Title"
                                         value={newLinkTitle}
                                         onChange={e => setNewLinkTitle(e.target.value)}
                                         className="w-full text-xs p-2 border border-gray-200 rounded focus:outline-none focus:border-blue-500"
                                     />
                                     <div className="flex gap-2">
-                                        <input 
-                                            type="text" 
-                                            placeholder="https://..." 
+                                        <input
+                                            type="text"
+                                            placeholder="https://..."
                                             value={newLinkUrl}
                                             onChange={e => setNewLinkUrl(e.target.value)}
                                             className="flex-1 text-xs p-2 border border-gray-200 rounded focus:outline-none focus:border-blue-500"
@@ -370,7 +424,7 @@ function ProjectPage({ onLogout }) {
                                     </h3>
                                     <button className="text-xs text-blue-600 font-medium hover:underline">View All</button>
                                 </div>
-                                
+
                                 <div className="space-y-3">
                                     {files.map(file => (
                                         <div key={file.id} className="flex items-center justify-between group">
