@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Github, Sparkles } from 'lucide-react';
 import ThemeToggle from '../components/themeToggle';
 import logo from '../img/logo.png';
 import { supabase } from '../supabaseClient';
@@ -45,7 +44,7 @@ function LoginPage({ onLogin }) {
             setPassword('');
             setName('');
         } else {
-            const { data, error } = await supabase.auth.signInWithPassword({
+            const { error } = await supabase.auth.signInWithPassword({
                 email,
                 password
             });

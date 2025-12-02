@@ -38,11 +38,12 @@ function HomePage({ onLogout }) {
 
             const { data: profile } = await supabase
                 .from('profiles')
-                .select('name')
+                .select('full_name')
                 .eq('id', user.id)
                 .single();
 
-            setCurrentUser({ ...user, name: profile?.name });
+            setCurrentUser({ ...user, full_name: profile?.full_name });
+
 
             const { data: memberRows, error: memberError } = await supabase
                 .from('project_members')
@@ -76,9 +77,6 @@ function HomePage({ onLogout }) {
 
         loadProjects();
     }, []);
-
-
-
 
     const formatDate = (dateString) => {
         return new Date(dateString).toLocaleDateString('en-US', {
