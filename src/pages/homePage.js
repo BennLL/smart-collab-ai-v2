@@ -12,41 +12,7 @@ import {
 } from 'lucide-react';
 import SideBar from '../components/sideBar';
 import { useNavigate } from 'react-router-dom';
-
-
-
-const CURRENT_USER = {
-    id: "user_123",
-    name: "test user 1",
-    email: 'test@gmail.com'
-};
-
-const INITIAL_PROJECTS = [
-    {
-        id: 1,
-        name: "AI Navigation System",
-        description: "Developing a YOLO-based navigation system for UAVs in GPS-denied environments.",
-        created_at: "2025-11-20T10:00:00Z",
-        owner_id: "user_123",
-        join_key: "NAV-8821"
-    },
-    {
-        id: 2,
-        name: "Web App",
-        description: "React frontend with Tailwind CSS and fake JSON backend.",
-        created_at: "2025-11-25T14:30:00Z",
-        owner_id: "user_123",
-        join_key: "REA-9912"
-    },
-    {
-        id: 3,
-        name: "Geography Class Group",
-        description: "Group project for California Cultural Regions.",
-        created_at: "2025-10-15T09:00:00Z",
-        owner_id: "user_999",
-        join_key: "GEO-1123"
-    }
-];
+import { supabase } from '../supabaseClient';
 
 function HomePage({ onLogout }) {
     const [projects, setProjects] = useState([]);
@@ -59,16 +25,59 @@ function HomePage({ onLogout }) {
     const [createName, setCreateName] = useState('');
     const [createDesc, setCreateDesc] = useState('');
     const [joinKey, setJoinKey] = useState('');
+    const [currentUser, setCurrentUser] = useState(null);
 
     const navigate = useNavigate();
 
     useEffect(() => {
-        const timer = setTimeout(() => {
-            setProjects(INITIAL_PROJECTS);
+        const loadProjects = async () => {
+            setLoading(true);
+
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return;
+
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('name')
+                .eq('id', user.id)
+                .single();
+
+            setCurrentUser({ ...user, name: profile?.name });
+
+            const { data: memberRows, error: memberError } = await supabase
+                .from('project_members')
+                .select('project_id')
+                .eq('user_id', user.id);
+
+            if (memberError) {
+                console.error(memberError);
+                setLoading(false);
+                return;
+            }
+
+            const projectIds = memberRows.map(row => row.project_id);
+
+            if (projectIds.length === 0) {
+                setProjects([]);
+                setLoading(false);
+                return;
+            }
+
+            const { data: memberProjects, error: projectsError } = await supabase
+                .from('projects')
+                .select('*')
+                .in('id', projectIds);
+
+            if (projectsError) console.error(projectsError);
+            else setProjects(memberProjects || []);
+
             setLoading(false);
-        }, 800);
-        return () => clearTimeout(timer);
+        };
+
+        loadProjects();
     }, []);
+
+
 
 
     const formatDate = (dateString) => {
@@ -83,57 +92,67 @@ function HomePage({ onLogout }) {
         setTimeout(() => setCopiedKey(null), 2000);
     };
 
-    const handleCreateProject = (e) => {
+    const handleCreateProject = async (e) => {
         e.preventDefault();
-        if (!createName.trim()) {
-            setError("Project name is required");
-            return;
-        }
+        if (!createName.trim()) return setError("Project name is required");
 
-        const newProject = {
-            id: Date.now(),
-            name: createName,
-            description: createDesc,
-            created_at: new Date().toISOString(),
-            owner_id: CURRENT_USER.id,
-            join_key: `NEW-${Math.floor(Math.random() * 10000)}`
-        };
+        const joinKey = `KEY-${Math.floor(1000 + Math.random() * 9000)}`;
 
-        setProjects([newProject, ...projects]);
+        const { data: project, error } = await supabase
+            .from('projects')
+            .insert({
+                name: createName,
+                description: createDesc,
+                owner_id: currentUser.id,
+                join_key: joinKey
+            })
+            .select()
+            .single();
+
+        if (error) return setError(error.message);
+
+        await supabase.from('project_members').insert({
+            project_id: project.id,
+            user_id: currentUser.id
+        });
+
+        setProjects([project, ...projects]);
         setCreateName('');
         setCreateDesc('');
-        setError('');
     };
 
-    const handleJoinProject = (e) => {
+    const handleJoinProject = async (e) => {
         e.preventDefault();
         if (!joinKey.trim()) return;
 
-        const newProject = {
-            id: Date.now(),
-            name: `Joined Project (${joinKey})`,
-            description: "You joined this project via a key.",
-            created_at: new Date().toISOString(),
-            owner_id: "other_user",
-            join_key: joinKey
-        };
+        const { data: project } = await supabase
+            .from('projects')
+            .select('*')
+            .eq('join_key', joinKey)
+            .single();
 
-        setProjects([newProject, ...projects]);
+        if (!project) return setError("Project not found");
+
+        await supabase.from('project_members').insert({
+            project_id: project.id,
+            user_id: currentUser.id
+        });
+
+        setProjects([project, ...projects]);
         setJoinKey('');
-        setError('');
     };
 
     const handleProjectClick = (projectId) => {
         const project = projects.find(p => p.id === projectId);
         if (project) {
-            navigate(`/project/${projectId}`, { state: { project } });
+            navigate(`/project/${projectId}`);
         }
     }
 
     return (
         <div className="flex h-screen overflow-hidden bg-gray-50">
             <SideBar
-                user={CURRENT_USER}
+                user={currentUser}
                 activeProjects={projects}
                 onSignOut={() => onLogout(false)}
                 currentView={currentView}
@@ -145,7 +164,7 @@ function HomePage({ onLogout }) {
 
                     <div className="mb-8">
                         <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                            Welcome back, {CURRENT_USER.name}!
+                            Welcome back, {currentUser?.name || currentUser?.email || 'User'}!
                         </h1>
                         <p className="text-gray-600">Manage your projects and collaborate with your team</p>
                     </div>
@@ -279,7 +298,7 @@ function HomePage({ onLogout }) {
                                             </div>
                                             <div className="flex items-center gap-2 text-xs text-gray-500">
                                                 <User size={14} />
-                                                <span>{project.owner_id === CURRENT_USER.id ? 'You are the owner' : 'Member'}</span>
+                                                <span>{project.owner_id === currentUser.id ? 'You are the owner' : 'Member'}</span>
                                             </div>
 
                                             <div className="flex items-center gap-2">
